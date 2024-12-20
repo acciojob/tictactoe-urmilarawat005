@@ -1,87 +1,74 @@
-//your JS code here. If required.
-let currentPlayer = 'X';
-  let player1 = '';
-  let player2 = '';
-  let gameBoard = ['', '', '', '', '', '', '', '', ''];
-  let gameActive = true;
+document.getElementById("submit").addEventListener("click", startGame);
 
-  // DOM elements
-  const submitButton = document.getElementById('submit');
-  const player1Input = document.getElementById('player-1');
-  const player2Input = document.getElementById('player-2');
-  const gameBoardContainer = document.getElementById('board');
-  const messageElement = document.getElementById('message');
-  const gameBoardDiv = document.getElementById('game-board');
-  const nameInputsDiv = document.getElementById('name-inputs');
+let currentPlayer = "X";
+let player1, player2;
+let board = ["", "", "", "", "", "", "", "", ""];
+let gameOver = false;
 
-  // Create a Tic Tac Toe grid
-  function createBoard() {
-    gameBoardContainer.innerHTML = '';
-    gameBoard.forEach((_, index) => {
-      const cell = document.createElement('div');
-      cell.classList.add('cell');
-      cell.setAttribute('data-id', index);
-      cell.addEventListener('click', handleCellClick);
-      gameBoardContainer.appendChild(cell);
-    });
+function startGame() {
+  player1 = document.getElementById("player-1").value;
+  player2 = document.getElementById("player-2").value;
+
+  if (!player1 || !player2) {
+    alert("Please enter names for both players.");
+    return;
   }
 
-  // Handle cell clicks
-  function handleCellClick(e) {
-    const cellId = e.target.getAttribute('data-id');
-    if (gameBoard[cellId] !== '' || !gameActive) return;
+  document.querySelector(".player-names").style.display = "none";
+  document.querySelector(".game-board").style.display = "block";
+  updateMessage();
 
-    // Mark the cell with the current player's symbol
-    gameBoard[cellId] = currentPlayer;
-    e.target.textContent = currentPlayer;
+  // Reset game variables
+  board = ["", "", "", "", "", "", "", "", ""];
+  currentPlayer = "X";
+  gameOver = false;
+  const cells = document.querySelectorAll(".cell");
+  cells.forEach(cell => cell.textContent = "");
+}
 
-    // Check if someone won
-    if (checkWinner()) {
-      messageElement.textContent = `${currentPlayer === 'X' ? player1 : player2} congratulations you won!`;
-      gameActive = false;
-      return;
-    }
+function updateMessage() {
+  const message = document.querySelector(".message");
+  if (gameOver) {
+    message.textContent = `${currentPlayer === "X" ? player2 : player1} Congratulations, you won!`;
+  } else {
+    message.textContent = `${currentPlayer === "X" ? player1 : player2}, you're up!`;
+  }
+}
 
-    // Switch player
-    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-    messageElement.textContent = `${currentPlayer === 'X' ? player1 : player2}, you're up`;
+document.querySelectorAll(".cell").forEach(cell => {
+  cell.addEventListener("click", () => handleCellClick(cell));
+});
+
+function handleCellClick(cell) {
+  const cellId = parseInt(cell.id) - 1;
+
+  if (board[cellId] !== "" || gameOver) return;
+
+  // Mark the cell
+  board[cellId] = currentPlayer;
+  cell.textContent = currentPlayer;
+
+  // Check for winner
+  if (checkWinner()) {
+    gameOver = true;
+    updateMessage();
+    return;
   }
 
-  // Check for a winner
-  function checkWinner() {
-    const winPatterns = [
-      [0, 1, 2], // Top row
-      [3, 4, 5], // Middle row
-      [6, 7, 8], // Bottom row
-      [0, 3, 6], // Left column
-      [1, 4, 7], // Middle column
-      [2, 5, 8], // Right column
-      [0, 4, 8], // Diagonal 1
-      [2, 4, 6], // Diagonal 2
-    ];
+  // Change turn
+  currentPlayer = currentPlayer === "X" ? "O" : "X";
+  updateMessage();
+}
 
-    return winPatterns.some(pattern => {
-      const [a, b, c] = pattern;
-      return gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c];
-    });
-  }
+function checkWinner() {
+  const winningCombinations = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],  // Rows
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],  // Columns
+    [0, 4, 8], [2, 4, 6]              // Diagonals
+  ];
 
-  // Start game after player names are entered
-  submitButton.addEventListener('click', () => {
-    player1 = player1Input.value.trim();
-    player2 = player2Input.value.trim();
-
-    if (!player1 || !player2) {
-      alert('Please enter names for both players');
-      return;
-    }
-
-    nameInputsDiv.style.display = 'none';
-    gameBoardDiv.style.display = 'block';
-
-    currentPlayer = 'X';
-    gameBoard = ['', '', '', '', '', '', '', '', ''];
-    gameActive = true;
-    messageElement.textContent = `${player1}, you're up`;
-    createBoard();
+  return winningCombinations.some(combination => {
+    const [a, b, c] = combination;
+    return board[a] === board[b] && board[b] === board[c] && board[a] !== "";
   });
+}
